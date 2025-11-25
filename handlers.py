@@ -87,6 +87,10 @@ RENDER_URL=https://rentabilit-fjdc.onrender.com
 
         if os.path.exists('render.yaml'):
             zip_file.write('render.yaml')
+            
+        # Inclure canaux_config.json pour le déploiement initial
+        if os.path.exists('canaux_config.json'):
+             zip_file.write('canaux_config.json')
 
     zip_buffer.seek(0)
     return zip_buffer
@@ -109,17 +113,15 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         send_message(chat_id, config.HELP_MESSAGE)
         return
 
-    # ⚠️ VÉRIFICATION ADMIN SUPPRIMÉE ICI :
-    # Tout utilisateur peut maintenant utiliser /banque, /mise, /cote, /reset
-    # if text.startswith(("/banque", "/mise", "/cote", "/reset")):
-    #     if user_id != ADMIN_ID:
-    #         send_message(chat_id, "🚫 Seul l'administrateur autorisé peut configurer ce bot.\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli")
-    #         return
+    # La vérification ADMIN_ID a été supprimée, tous les utilisateurs peuvent configurer
+    if text.startswith(("/banque", "/mise", "/cote", "/reset")):
+        pass
 
     if text.startswith("/banque"):
         try:
             montant = float(text.split()[1])
             canal_cfg["banque"] = montant
+            config.save_config() # <-- SAUVEGARDE
             send_message(chat_id, f"✅ Banque définie à {montant} FCFA pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
         except:
@@ -130,6 +132,7 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         try:
             montant = float(text.split()[1])
             canal_cfg["mise"] = montant
+            config.save_config() # <-- SAUVEGARDE
             send_message(chat_id, f"✅ Mise définie à {montant} FCFA pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
         except:
@@ -140,6 +143,7 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         try:
             montant = float(text.split()[1])
             canal_cfg["cote"] = float(montant)
+            config.save_config() # <-- SAUVEGARDE
             send_message(chat_id, f"✅ Côte définie à {montant} pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
         except:
@@ -151,6 +155,7 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         canal_cfg["mise"] = 0
         canal_cfg["cote"] = 0
         canal_cfg["etat_du_bot"] = False
+        config.save_config() # <-- SAUVEGARDE
 
         send_message(chat_id, f"🔄 Bot réinitialisé pour {chat_title}. Redéfinissez /banque /mise /cote")
         return
@@ -200,7 +205,7 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
                 chat_id, 
                 zip_data, 
                 'fin25.zip',
-                '✅ Fichiers de déploiement Render (PORT=10000) - VERSION PRO\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, requirements.txt, render.yaml, README_RENDER.md'
+                '✅ Fichiers de déploiement Render (PORT=10000) - VERSION PRO\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, requirements.txt, render.yaml, README_RENDER.md, canaux_config.json'
             )
             send_message(chat_id, """✅ Package 'fin25.zip' envoyé avec succès!
 
@@ -308,12 +313,14 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
 
     canal_cfg["banque"] = nb
     config.stats["messages_traites"] += 1
+    config.save_config() # <-- SAUVEGARDE après le calcul de P&L
     send_message(chat_id, message)
 
 
 def check_ready(chat_id, canal_cfg, chat_title):
     if canal_cfg["banque"] > 0 and canal_cfg["mise"] > 0 and canal_cfg["cote"] > 0:
         canal_cfg["etat_du_bot"] = True
+        config.save_config() # <-- SAUVEGARDE si le bot est activé
 
         send_message(chat_id,
             f"✅ BOT ACTIVÉ pour {chat_title}\n\nIl analysera maintenant automatiquement les statuts de ce canal."
