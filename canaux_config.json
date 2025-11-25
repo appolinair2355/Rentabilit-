@@ -1,0 +1,16 @@
+{
+  "-1003341134749": {
+    "banque": 13450.0,
+    "mise": 500.0,
+    "cote": 1.9,
+    "etat_du_bot": true,
+    "nom_canal": "Bot hyper Intelligent carte enseigne confiance 99%"
+  },
+  "1190237801": {
+    "banque": 0,
+    "mise": 0,
+    "cote": 0,
+    "etat_du_bot": false,
+    "nom_canal": "Canal inconnu"
+  }
+}
