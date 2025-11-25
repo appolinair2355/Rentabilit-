@@ -49,21 +49,19 @@ def webhook():
         chat_id = channel_post["chat"]["id"]
         chat_title = channel_post["chat"].get("title", "Canal inconnu")
         text = channel_post.get("text", "")
-        user_id = channel_post.get("from", {}).get("id")
         
         import config
         from datetime import datetime
         config.stats["dernier_canal"] = chat_title
         config.stats["dernier_message_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
-        handle_message(chat_id, text, chat_title, user_id)
+        handle_message(chat_id, text, chat_title)
     
     if "edited_channel_post" in data:
         edited_post = data["edited_channel_post"]
         chat_id = edited_post["chat"]["id"]
         chat_title = edited_post["chat"].get("title", "Canal inconnu")
         text = edited_post.get("text", "")
-        user_id = edited_post.get("from", {}).get("id")
         
         import config
         from datetime import datetime
@@ -71,7 +69,7 @@ def webhook():
         config.stats["dernier_message_date"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         print(f"Message édité dans {chat_title}: {text}")
-        handle_message(chat_id, text, chat_title, user_id)
+        handle_message(chat_id, text, chat_title)
     
     if "my_chat_member" in data:
         from handlers import send_message
