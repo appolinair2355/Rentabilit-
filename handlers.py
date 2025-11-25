@@ -102,18 +102,19 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
     canal_cfg = config.get_canal_config(chat_id)
     canal_cfg["nom_canal"] = chat_title
 
-    # ID de l'administrateur autorisé
+    # ID de l'administrateur autorisé (MAINTENU MAIS NON UTILISÉ POUR LA VÉRIFICATION)
     ADMIN_ID = 1190237801
 
     if text.startswith("/start"):
         send_message(chat_id, config.HELP_MESSAGE)
         return
 
-    # Vérification admin pour les commandes de configuration
-    if text.startswith(("/banque", "/mise", "/cote", "/reset")):
-        if user_id != ADMIN_ID:
-            send_message(chat_id, "🚫 Seul l'administrateur autorisé peut configurer ce bot.\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli")
-            return
+    # ⚠️ VÉRIFICATION ADMIN SUPPRIMÉE ICI :
+    # Tout utilisateur peut maintenant utiliser /banque, /mise, /cote, /reset
+    # if text.startswith(("/banque", "/mise", "/cote", "/reset")):
+    #     if user_id != ADMIN_ID:
+    #         send_message(chat_id, "🚫 Seul l'administrateur autorisé peut configurer ce bot.\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli")
+    #         return
 
     if text.startswith("/banque"):
         try:
