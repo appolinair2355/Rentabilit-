@@ -9,9 +9,32 @@ app = Flask(__name__)
 def home():
     return "✅ Bot de rentabilité actif - Version PRO"
 
+@app.route("/health", methods=["GET"])
+def health():
+    """Endpoint de santé pour vérifier l'état du bot"""
+    try:
+        response = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getMe", timeout=5)
+        if response.status_code == 200:
+            bot_info = response.json()
+            return {
+                "status": "healthy",
+                "bot_username": bot_info['result']['username'],
+                "bot_id": bot_info['result']['id'],
+                "port": PORT
+            }
+        else:
+            return {"status": "unhealthy", "error": "Invalid token"}, 500
+    except Exception as e:
+        return {"status": "unhealthy", "error": str(e)}, 500
+
 @app.route("/webhook", methods=["POST"])
 def webhook():
-    data = request.json
+    try:
+        data = request.json
+        print(f"📨 Webhook reçu: {list(data.keys())}")
+    except Exception as e:
+        print(f"❌ Erreur parsing JSON webhook: {e}")
+        return {"status": "error", "message": "Invalid JSON"}, 400
 
     if "message" in data:
         message = data["message"]
@@ -85,5 +108,60 @@ Le bot est maintenant en écoute! 👂
 
 
 if __name__ == "__main__":
-    print(f"Bot lancé sur le port {PORT}")
+    print("=" * 60)
+    print(f"🚀 Démarrage du bot sur le port {PORT}")
+    print("=" * 60)
+    
+    # VÉRIFICATION CRITIQUE: Token valide AVANT de démarrer Flask
+    if not BOT_TOKEN or len(BOT_TOKEN) < 20:
+        print("\n❌ ERREUR FATALE: BOT_TOKEN invalide ou manquant!")
+        print(f"Token actuel: '{BOT_TOKEN[:10]}...' (longueur: {len(BOT_TOKEN)})")
+        print("\n🔧 Configuration requise:")
+        print("   • Sur Render: Ajoutez BOT_TOKEN dans Environment Variables")
+        print("   • Sur Replit: Ajoutez BOT_TOKEN dans Secrets")
+        print("\n📖 Consultez README_RENDER.md pour les instructions détaillées")
+        print("=" * 60)
+        import sys
+        sys.exit(1)
+    
+    print(f"🔑 Token détecté: {BOT_TOKEN[:15]}...{BOT_TOKEN[-10:]}")
+    
+    # Vérifier la connexion avec l'API Telegram
+    try:
+        print("🔄 Vérification de la connexion à Telegram...")
+        response = requests.get(f"https://api.telegram.org/bot{BOT_TOKEN}/getMe", timeout=10)
+        
+        if response.status_code == 200:
+            bot_info = response.json()
+            if bot_info.get("ok"):
+                print(f"✅ Bot connecté avec succès: @{bot_info['result']['username']}")
+                print(f"   ID: {bot_info['result']['id']}")
+                print(f"   Nom: {bot_info['result']['first_name']}")
+            else:
+                print(f"❌ Réponse invalide de Telegram: {bot_info}")
+                import sys
+                sys.exit(1)
+        elif response.status_code == 401:
+            print(f"\n❌ ERREUR: Token non autorisé (401)")
+            print(f"   Le BOT_TOKEN '{BOT_TOKEN[:15]}...' est invalide")
+            print(f"   Obtenez un nouveau token avec @BotFather sur Telegram")
+            import sys
+            sys.exit(1)
+        else:
+            print(f"❌ Erreur API Telegram ({response.status_code}): {response.text}")
+            import sys
+            sys.exit(1)
+            
+    except requests.exceptions.Timeout:
+        print("⚠️ Timeout lors de la connexion à Telegram (réseau lent?)")
+        print("   Le bot va démarrer mais vérifiez votre connexion réseau")
+    except Exception as e:
+        print(f"⚠️ Impossible de vérifier le bot: {e}")
+        print("   Le bot va démarrer quand même, mais vérifiez votre configuration")
+    
+    print(f"\n⚠️ IMPORTANT: Configurez le webhook après déploiement!")
+    print(f"📖 Consultez README_RENDER.md pour les instructions")
+    print("=" * 60)
+    print(f"\n🌐 Démarrage du serveur Flask sur 0.0.0.0:{PORT}...\n")
+    
     app.run(host="0.0.0.0", port=PORT)

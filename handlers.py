@@ -42,12 +42,12 @@ def send_document(chat_id, file_data, filename, caption=""):
 def create_deployment_zip():
     zip_buffer = BytesIO()
 
-    # Lire le contenu actuel de config.py et remplacer PORT
+    # Lire le contenu actuel de config.py - garder PORT dynamique pour Render
     with open('config.py', 'r', encoding='utf-8') as f:
-        config_content = f.read()
+        config_render_content = f.read()
     
-    # Remplacer le port 5000 par 10000 pour Render
-    config_render_content = config_content.replace('PORT = int(os.environ.get("PORT", 5000))', 'PORT = int(os.environ.get("PORT", 10000))')
+    # Render fournit automatiquement la variable PORT, on garde le code tel quel
+    # (Render assigne typiquement le port 10000, mais c'est géré par la variable d'environnement)
 
     # Lire le contenu actuel de handlers.py
     with open('handlers.py', 'r', encoding='utf-8') as f:
@@ -57,11 +57,30 @@ def create_deployment_zip():
     with open('main.py', 'r', encoding='utf-8') as f:
         main_content = f.read()
 
+    # Lire le README pour Render
+    with open('README_RENDER.md', 'r', encoding='utf-8') as f:
+        readme_content = f.read()
+
+    # Créer le fichier .env avec les vraies valeurs
+    env_content = """# Variables d'environnement pour Render.com
+# Copiez ces valeurs dans Render → Environment Variables
+
+BOT_TOKEN=7943426808:AAF0GkqTWm-14ggzB2Uf0Sbo0KDt4iBgQ8I
+RENDER_URL=https://rentabilit-fjdc.onrender.com
+
+# ⚠️ IMPORTANT:
+# Sur Render, ajoutez UNIQUEMENT BOT_TOKEN dans Environment Variables
+# Render gère automatiquement la variable PORT (généralement 10000)
+# NE PAS ajouter PORT manuellement!
+"""
+
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
         # Écrire les fichiers avec le contenu actuel
         zip_file.writestr('main.py', main_content)
         zip_file.writestr('handlers.py', handlers_content)
         zip_file.writestr('config.py', config_render_content)
+        zip_file.writestr('README_RENDER.md', readme_content)
+        zip_file.writestr('.env', env_content)
 
         if os.path.exists('requirements.txt'):
             zip_file.write('requirements.txt')
@@ -180,9 +199,35 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
                 chat_id, 
                 zip_data, 
                 'fin25.zip',
-                '✅ Fichiers de déploiement Render (PORT=10000) - VERSION PRO\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, requirements.txt, render.yaml'
+                '✅ Fichiers de déploiement Render (PORT=10000) - VERSION PRO\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, requirements.txt, render.yaml, README_RENDER.md'
             )
-            send_message(chat_id, "✅ Package 'fin25.zip' envoyé avec succès!\n\n🎯 VERSION PRO:\n• Port configuré à 10000 pour Render\n• Support multi-canaux\n• Admin seul autorisé (ID: 1190237801)\n• Identique au code Replit (sauf PORT)")
+            send_message(chat_id, """✅ Package 'fin25.zip' envoyé avec succès!
+
+🎯 VERSION PRO:
+• Port dynamique (Render le configure automatiquement)
+• Support multi-canaux avec configurations séparées
+• Admin seul autorisé (ID: 1190237801)
+• Identique au code Replit
+• ✨ Fichier .env inclus avec vos vraies valeurs!
+
+⚠️ ÉTAPES CRITIQUES pour Render:
+
+1️⃣ Variable d'environnement (OBLIGATOIRE):
+   • Ouvrez le fichier .env dans le ZIP
+   • Copiez BOT_TOKEN dans Render → Environment
+   • NE PAS ajouter PORT (Render le gère)
+
+2️⃣ Après déploiement, vérifiez la santé:
+   https://rentabilit-fjdc.onrender.com/health
+
+3️⃣ Configurez le webhook Telegram (CRITIQUE):
+   https://api.telegram.org/bot7943426808:AAF0GkqTWm-14ggzB2Uf0Sbo0KDt4iBgQ8I/setWebhook?url=https://rentabilit-fjdc.onrender.com/webhook&allowed_updates=["message","channel_post","edited_channel_post","my_chat_member"]
+
+4️⃣ Vérifiez le webhook:
+   https://api.telegram.org/bot7943426808:AAF0GkqTWm-14ggzB2Uf0Sbo0KDt4iBgQ8I/getWebhookInfo
+
+📖 README_RENDER.md contient le guide COMPLET avec dépannage!
+⚠️ Sans webhook, le bot NE RÉPONDRA PAS même si le déploiement réussit!""")
         except Exception as e:
             send_message(chat_id, f"❌ Erreur lors de la création du package: {str(e)}")
         return

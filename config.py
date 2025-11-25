@@ -1,9 +1,8 @@
 
 import os
 
-BOT_TOKEN = os.environ.get("BOT_TOKEN", "VOTRE_TOKEN_ICI")
-
-PORT = int(os.environ.get("PORT", 10000))
+BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
+PORT = int(os.environ.get("PORT", 5000))
 
 # Configuration multi-canaux : dictionnaire par chat_id
 canaux_config = {}
