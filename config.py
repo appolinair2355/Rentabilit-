@@ -42,7 +42,7 @@ def load_config():
             with open(CONFIG_FILE, 'r', encoding='utf-8') as f:
                 data = json.load(f)
                 # Convertit les clés string en int (car les IDs de chat sont des nombres)
-                canaux_config.update({int(k) if k.lstrip('-').isdigit() else k: v for k, v in data.items()})
+                canaux_config.update({int(k) if str(k).lstrip('-').isdigit() else k: v for k, v in data.items()})
             print("Configuration chargée avec succès.")
         except Exception as e:
             print(f"❌ Erreur lors du chargement de la configuration: {e}")
@@ -79,3 +79,4 @@ def get_canal_config(chat_id):
 
 # Charge la configuration au démarrage
 load_config()
+        
