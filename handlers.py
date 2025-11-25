@@ -4,6 +4,7 @@ import config
 import zipfile
 import os
 from io import BytesIO
+import json # Ajouté pour le débogage si besoin
 
 BASE_URL = f"https://api.telegram.org/bot{config.BOT_TOKEN}/sendMessage"
 SEND_DOCUMENT_URL = f"https://api.telegram.org/bot{config.BOT_TOKEN}/sendDocument"
@@ -42,13 +43,10 @@ def send_document(chat_id, file_data, filename, caption=""):
 def create_deployment_zip():
     zip_buffer = BytesIO()
 
-    # Lire le contenu actuel de config.py - garder PORT dynamique pour Render
+    # Lire le contenu actuel de config.py
     with open('config.py', 'r', encoding='utf-8') as f:
         config_render_content = f.read()
     
-    # Render fournit automatiquement la variable PORT, on garde le code tel quel
-    # (Render assigne typiquement le port 10000, mais c'est géré par la variable d'environnement)
-
     # Lire le contenu actuel de handlers.py
     with open('handlers.py', 'r', encoding='utf-8') as f:
         handlers_content = f.read()
@@ -113,41 +111,73 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         send_message(chat_id, config.HELP_MESSAGE)
         return
 
-    # La vérification ADMIN_ID a été supprimée, tous les utilisateurs peuvent configurer
-    if text.startswith(("/banque", "/mise", "/cote", "/reset")):
-        pass
-
+    # ⚠️ VÉRIFICATION ADMIN SUPPRIMÉE : Tous les utilisateurs peuvent configurer
+    
     if text.startswith("/banque"):
+        args = text.split()
+        if len(args) < 2:
+            send_message(chat_id, "❌ **ERREUR :** Veuillez spécifier le montant de la banque.\n\nExemple : `/banque 6000`")
+            return
+        
         try:
-            montant = float(text.split()[1])
+            montant = float(args[1])
+            
+            if montant <= 0:
+                send_message(chat_id, "❌ Le montant de la banque doit être supérieur à zéro.")
+                return
+
             canal_cfg["banque"] = montant
             config.save_config() # <-- SAUVEGARDE
-            send_message(chat_id, f"✅ Banque définie à {montant} FCFA pour {chat_title}")
+            send_message(chat_id, f"✅ Banque définie à **{montant:.2f}** FCFA pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
-        except:
-            send_message(chat_id, "❌ Exemple : /banque 6000")
+            
+        except ValueError:
+            send_message(chat_id, "❌ **ERREUR :** Le montant saisi n'est pas un nombre valide.\n\nExemple : `/banque 6000` (utilisez un **point** pour les décimales si nécessaire : `6000.50`)")
         return
 
+
     if text.startswith("/mise"):
+        args = text.split()
+        if len(args) < 2:
+            send_message(chat_id, "❌ **ERREUR :** Veuillez spécifier le montant de la mise.\n\nExemple : `/mise 500`")
+            return
+        
         try:
-            montant = float(text.split()[1])
+            montant = float(args[1])
+            
+            if montant <= 0:
+                send_message(chat_id, "❌ Le montant de la mise doit être supérieur à zéro.")
+                return
+
             canal_cfg["mise"] = montant
             config.save_config() # <-- SAUVEGARDE
-            send_message(chat_id, f"✅ Mise définie à {montant} FCFA pour {chat_title}")
+            send_message(chat_id, f"✅ Mise définie à **{montant:.2f}** FCFA pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
-        except:
-            send_message(chat_id, "❌ Exemple : /mise 500")
+            
+        except ValueError:
+            send_message(chat_id, "❌ **ERREUR :** Le montant saisi n'est pas un nombre valide.\n\nExemple : `/mise 500`")
         return
 
     if text.startswith("/cote"):
+        args = text.split()
+        if len(args) < 2:
+            send_message(chat_id, "❌ **ERREUR :** Veuillez spécifier la cote.\n\nExemple : `/cote 1.9`")
+            return
+        
         try:
-            montant = float(text.split()[1])
+            montant = float(args[1])
+            
+            if montant <= 1.0:
+                send_message(chat_id, "❌ La cote doit être supérieure à 1.0.")
+                return
+
             canal_cfg["cote"] = float(montant)
             config.save_config() # <-- SAUVEGARDE
-            send_message(chat_id, f"✅ Côte définie à {montant} pour {chat_title}")
+            send_message(chat_id, f"✅ Côte définie à **{montant}** pour {chat_title}")
             check_ready(chat_id, canal_cfg, chat_title)
-        except:
-            send_message(chat_id, "❌ Exemple : /cote 1.9")
+            
+        except ValueError:
+            send_message(chat_id, "❌ **ERREUR :** La cote saisie n'est pas un nombre valide.\n\nExemple : `/cote 1.9`")
         return
 
     if text.startswith("/reset"):
