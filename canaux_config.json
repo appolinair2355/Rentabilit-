@@ -1,6 +1,6 @@
 {
   "-1003341134749": {
-    "banque": 13450.0,
+    "banque": 12700.0,
     "mise": 500.0,
     "cote": 1.9,
     "etat_du_bot": true,
@@ -11,6 +11,6 @@
     "mise": 0,
     "cote": 0,
     "etat_du_bot": false,
-    "nom_canal": "Canal inconnu"
+    "nom_canal": "Sossou"
   }
 }
