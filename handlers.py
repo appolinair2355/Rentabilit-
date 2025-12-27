@@ -67,11 +67,12 @@ def create_deployment_zip():
 
 BOT_TOKEN=7943426808:AAF0GkqTWm-14ggzB2Uf0Sbo0KDt4iBgQ8I
 RENDER_URL=https://rentabilit-fjdc.onrender.com
+PORT=10000
 
 # ⚠️ IMPORTANT:
-# Sur Render, ajoutez UNIQUEMENT BOT_TOKEN dans Environment Variables
-# Render gère automatiquement la variable PORT (généralement 10000)
-# NE PAS ajouter PORT manuellement!
+# Sur Render, ajoutez BOT_TOKEN dans Environment Variables
+# Render gère automatiquement la variable PORT (10000)
+# Le port 10000 est configuré par défaut sur Render!
 """
 
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
@@ -216,19 +217,19 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
         return
 
     if text.startswith("/deploy"):
-        send_message(chat_id, "📦 Création du package de déploiement pour Render...")
+        send_message(chat_id, "📦 Création du package de déploiement pour Render (port 10000)...")
         try:
             zip_data = create_deployment_zip()
             send_document(
                 chat_id, 
                 zip_data, 
-                'bien1.zip',
-                '✅ Fichiers de déploiement Render - VERSION COMPLÈTE\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, canaux_config.json, requirements.txt, render.yaml, README_RENDER.md, .env, .gitignore'
+                'ko.zip',
+                '✅ Fichiers de déploiement Render - VERSION PRO (Port 10000)\n\n👨‍💻 Développeurs: Sossou Kouamé & Ahobadé Eli\n\nContient: main.py, handlers.py, config.py, canaux_config.json, requirements.txt, render.yaml, README_RENDER.md, .env, .gitignore'
             )
-            send_message(chat_id, """✅ Package 'bien1.zip' envoyé avec succès!
+            send_message(chat_id, """✅ Package 'ko.zip' envoyé avec succès!
 
-🎯 VERSION PRO:
-• Port dynamique (Render le configure automatiquement)
+🎯 VERSION PRO (Port 10000):
+• Port 10000 pour Render.com
 • Support multi-canaux avec configurations séparées
 • Admin seul autorisé (ID: 1190237801)
 • Identique au code Replit
@@ -239,7 +240,7 @@ def handle_message(chat_id, text, chat_title="Canal inconnu", user_id=None):
 1️⃣ Variable d'environnement (OBLIGATOIRE):
    • Ouvrez le fichier .env dans le ZIP
    • Copiez BOT_TOKEN dans Render → Environment
-   • NE PAS ajouter PORT (Render le gère)
+   • PORT=10000 est déjà configuré dans .env
 
 2️⃣ Après déploiement, vérifiez la santé:
    https://rentabilit-fjdc.onrender.com/health
